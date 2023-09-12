@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Image,
     StyleSheet,
@@ -6,10 +6,23 @@ import {
     View,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
 
 export const LogInScreen = () => {
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(true);
+    const [showPassText, setShowPassText] = useState("Показати");
+    const [emailFocused, setEmailFocused] = useState(false);
+    const [passwordFocused, setPasswordFocused] = useState(false);
+
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
         "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),
@@ -19,30 +32,69 @@ export const LogInScreen = () => {
         return null;
     }
 
-    return (
-        <View style={styles.container}>
-            <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
-            <View style={styles.logIn}>
-                <Text style={styles.text}>Увійти</Text>
+    const onLogIn = () => {
+        if (!email ?? !password) {
+            return Alert.alert("Заповніть форму цілком");
+        }
 
-                <View style={styles.form}>
-                    <TextInput
-                        placeholder="Адреса електронної пошти"
-                        style={styles.formItem}
-                    />
-                    <TextInput placeholder="Пароль" style={styles.formItem} />
-                    <TouchableOpacity style={styles.showPass}>
-                        <Text style={styles.showPassText}>Показати</Text>
+        console.log(`Email: "${email}"; Password "${password}"`);
+        setEmail("");
+        setPassword("");
+        setShowPassword(true);
+        setShowPassText("Показати");
+    };
+
+    const showPass = () => {
+        setShowPassword(!showPassword);
+        setShowPassText(!showPassword ? "Показати" : "Скрити");
+    };
+
+    return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container}>
+                <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
+                <View style={styles.logIn}>
+                    <Text style={styles.text}>Увійти</Text>
+
+                    <View>
+                        <KeyboardAvoidingView style={styles.form} behavior={Platform.OS == "ios" ? "padding" : "height"}>
+                            <TextInput
+                                type="email"
+                                placeholder="Адреса електронної пошти"
+                                required
+                                style={[styles.formItem, emailFocused ? styles.formItemFocused : null]}
+                                value={email}
+                                onChangeText={setEmail}
+                                onFocus={() => setEmailFocused(true)}
+                                onBlur={() => setEmailFocused(false)}
+                            />
+                            <TextInput
+                                type="password"
+                                placeholder="Пароль"
+                                required
+                                style={[styles.formItem, passwordFocused ? styles.formItemFocused : null]}
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry={showPassword}
+                                onFocus={() => setPasswordFocused(true)}
+                                onBlur={() => setPasswordFocused(false)}
+                            />
+                            <TouchableOpacity style={styles.showPass} onPress={showPass}>
+                                <Text style={styles.showPassText}>{showPassText}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.formBtn} onPress={onLogIn}>
+                                <Text style={styles.formBtnText}>Увійти</Text>
+                            </TouchableOpacity>
+                        </KeyboardAvoidingView>
+                    </View>
+                    <TouchableOpacity style={styles.nav}>
+                        <Text style={styles.navText}>Немає акаунту? Зареєструватися</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.formBtn}>
-                        <Text style={styles.formBtnText}>Увійти</Text>
-                    </TouchableOpacity>
+
+
                 </View>
-                <TouchableOpacity style={styles.nav}>
-                    <Text style={styles.navText}>Немає акаунту? Зареєструватися</Text>
-                </TouchableOpacity>
             </View>
-        </View>
+        </TouchableWithoutFeedback >
     );
 };
 
@@ -73,18 +125,18 @@ const styles = StyleSheet.create({
     photo: {
         width: 120,
         height: 120,
-        backgroundColor: '#F6F6F6',
+        backgroundColor: "#F6F6F6",
         borderRadius: 16,
-        position: 'absolute',
+        position: "absolute",
         top: -60,
         right: 135,
     },
     photoPlus: {
         width: 25,
         height: 25,
-        position: 'absolute',
+        position: "absolute",
         bottom: 14,
-        left: 107
+        left: 107,
     },
     text: {
         fontFamily: "Roboto-Medium",
@@ -111,39 +163,42 @@ const styles = StyleSheet.create({
         borderColor: "#E8E8E8",
         borderRadius: 5,
     },
+    formItemFocused: {
+        backgroundColor: '#fff',
+        borderColor: "#FF6C00",
+    },
     formBtn: {
         width: "100%",
         paddingVertical: 16,
         paddingHorizontal: 111.5,
-        backgroundColor: '#FF6C00',
+        backgroundColor: "#FF6C00",
         borderRadius: 100,
         marginTop: 27,
-
     },
     formBtnText: {
         fontSize: 16,
         fontFamily: "Roboto-Regular",
         color: "#fff",
-        textAlign: 'center'
+        textAlign: "center",
     },
     showPass: {
-        position: 'absolute',
+        position: "absolute",
         top: 96,
         right: 16,
     },
     showPassText: {
         fontSize: 16,
-        color: '#1B4371',
+        color: "#1B4371",
         fontFamily: "Roboto-Regular",
-        fontStyle: 'normal'
+        fontStyle: "normal",
     },
     nav: {
-        marginTop: 16
+        marginTop: 16,
     },
     navText: {
-        textAlign: 'center',
+        textAlign: "center",
         fontSize: 16,
-        color: '#1B4371',
+        color: "#1B4371",
         fontFamily: "Roboto-Regular",
-    }
+    },
 });

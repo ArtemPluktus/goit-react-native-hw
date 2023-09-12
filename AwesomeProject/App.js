@@ -10,7 +10,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      {LogIn ? <LogInScreen /> : <RegistrationScreen />}
+      {!LogIn ? <LogInScreen /> : <RegistrationScreen />}
     </SafeAreaView>
   );
 }
