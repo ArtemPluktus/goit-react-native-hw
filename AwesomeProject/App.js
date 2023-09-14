@@ -1,25 +1,23 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import 'react-native-gesture-handler';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import { RegistrationScreen } from './screens/RegistrationScreen.js';
 import { LogInScreen } from './screens/LogInScreen.js';
+import { HomeScreen } from './screens/HomeScreen.js';
+import { PostScreen } from './screens/PostScreen.js';
+
+const MainStack = createStackNavigator();
 
 export default function App() {
-
-  const LogIn = true;
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
-      {!LogIn ? <LogInScreen /> : <RegistrationScreen />}
-    </SafeAreaView>
+    <NavigationContainer>
+      <MainStack.Navigator initialRouteName="Login">
+        <MainStack.Screen name="Login" component={LogInScreen} options={{ headerShown: false }} />
+        <MainStack.Screen name="Registration" component={RegistrationScreen} options={{ headerShown: false }} />
+        <MainStack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <MainStack.Screen name="Post" component={PostScreen} options={{ headerShown: false }} />
+      </MainStack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

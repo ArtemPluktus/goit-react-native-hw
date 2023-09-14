@@ -13,8 +13,12 @@ import {
     Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
+import { useNavigation } from '@react-navigation/native';
 
 export const RegistrationScreen = () => {
+
+    const navigation = useNavigation();
+
     const [login, setLogin] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -39,6 +43,7 @@ export const RegistrationScreen = () => {
         }
 
         console.log(`Login: "${login}"; Email: "${email}"; Password "${password}"`);
+        navigation.navigate("Home");
         setLogin("");
         setEmail("");
         setPassword("");
@@ -110,7 +115,7 @@ export const RegistrationScreen = () => {
                             </TouchableOpacity>
                         </KeyboardAvoidingView>
                     </View>
-                    <TouchableOpacity style={styles.nav}>
+                    <TouchableOpacity style={styles.nav} onPress={() => navigation.navigate("Login")}>
                         <Text style={styles.navText}>Вже є акаунт? Увійти</Text>
                     </TouchableOpacity>
                 </View>
@@ -136,7 +141,7 @@ const styles = StyleSheet.create({
     register: {
         backgroundColor: "#fff",
         width: "100%",
-        height: "69%",
+        height: "75%",
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         alignSelf: "center",

@@ -13,8 +13,11 @@ import {
     Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
+import { useNavigation } from '@react-navigation/native';
 
 export const LogInScreen = () => {
+
+    const navigation = useNavigation();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -38,6 +41,7 @@ export const LogInScreen = () => {
         }
 
         console.log(`Email: "${email}"; Password "${password}"`);
+        navigation.navigate("Home");
         setEmail("");
         setPassword("");
         setShowPassword(true);
@@ -87,7 +91,7 @@ export const LogInScreen = () => {
                             </TouchableOpacity>
                         </KeyboardAvoidingView>
                     </View>
-                    <TouchableOpacity style={styles.nav}>
+                    <TouchableOpacity style={styles.nav} onPress={() => navigation.navigate("Registration")}>
                         <Text style={styles.navText}>Немає акаунту? Зареєструватися</Text>
                     </TouchableOpacity>
 
