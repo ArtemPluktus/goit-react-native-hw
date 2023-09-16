@@ -15,6 +15,7 @@ import {
 import { useFonts } from "expo-font";
 import { useNavigation } from '@react-navigation/native';
 
+
 export const RegistrationScreen = () => {
 
     const navigation = useNavigation();
@@ -74,7 +75,7 @@ export const RegistrationScreen = () => {
                     <View>
                         <KeyboardAvoidingView
                             style={styles.form}
-                            behavior={Platform.OS == "ios" ? "padding" : "height"}
+                            behavior={Platform.OS !== "ios" ? "padding" : "height"}
                         >
                             <TextInput
                                 type="text"

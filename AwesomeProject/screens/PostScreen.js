@@ -1,16 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Image,
     StyleSheet,
     Text,
     View,
-    TouchableOpacity
+    TouchableOpacity,
+    TextInput,
+    TouchableWithoutFeedback,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { useFonts } from "expo-font";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 export const PostScreen = () => {
     const navigation = useNavigation();
+
+    const [description, setDescription] = useState("");
+    const [location, setLocation] = useState("");
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -19,52 +27,121 @@ export const PostScreen = () => {
 
     if (!fontsLoaded) {
         return null;
-    }
+    };
 
-    const onLogOut = () => {
-        navigation.navigate("Login");
+    const onPost = () => {
+        console.log(`Description: ${description}, Location: ${location}`);
+        setDescription("");
+        setLocation("");
+        navigation.navigate("Home");
     }
 
     return (
-        <View>
-            <View style={styles.header}>
-                <Image source={require("../assets/img/back.png")} style={styles.back} onProgress={() => navigation.navigate("Home")} />
-                <Text style={styles.title}>Створити публікацію</Text>
-            </View>
-        </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                        <Image source={require("../assets/img/back.png")} />
+                    </TouchableOpacity>
 
-    )
-}
+                    <Text style={styles.title}>Створити публікацію</Text>
+                </View>
+                <View>
+                    <KeyboardAvoidingView style={styles.form} behavior={Platform.OS !== "ios" ? "padding" : "height"} >
+                        <View style={styles.postPhoto}>
+                            <TouchableOpacity style={styles.photoPlace}>
+                                <Image
+                                    source={require("../assets/img/postPhoto.png")}
+                                    style={styles.photoImg}
+                                />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.delete}>
+                                <Text style={styles.deleteText}>Видалити фото</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TextInput type="text"
+                            placeholder="Опис"
+                            required style={styles.textInput}
+                            value={description}
+                            onChangeText={setDescription} />
+                        <TextInput type="text"
+                            placeholder="Місцевість"
+                            required style={styles.textInput}
+                            value={location}
+                            onChangeText={setLocation} />
+                        <TouchableOpacity style={styles.formBtn} onPress={onPost}>
+                            <Text style={styles.formBtnText}>Опублікувати</Text>
+                        </TouchableOpacity>
+                    </KeyboardAvoidingView>
+                </View>
+            </View>
+        </TouchableWithoutFeedback>
+    );
+};
 
 const styles = StyleSheet.create({
     header: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
         gap: 80,
         padding: 10,
         width: "100%",
         borderBottomWidth: 1,
-        borderBottomColor: '#000',
-        position: 'fixed'
+        borderBottomColor: "#000",
+        marginTop: 30,
     },
     title: {
         fontSize: 16,
         fontFamily: "Roboto-Medium",
     },
-    post: {
-        width: '0%',
-        paddingVertical: 15,
-        paddingHorizontal: 35,
-        backgroundColor: "#FF6C00",
-        borderRadius: 20,
-        position: 'absolute',
-        top: "1000%",
-        left: '41%',
+    form: {
+        paddingVertical: 32,
+        paddingHorizontal: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
     },
-    postImg: {
-        left: -7.5,
-        width: 15,
-        height: 15,
-    }
-})
+    postPhoto: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: "column",
+        gap: 8,
+        marginBottom: 16,
+    },
+    photoPlace: {
+        height: 240,
+        backgroundColor: "#E8E8E8",
+        borderRadius: 8,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteText: {
+        fontSize: 16,
+        fontFamily: "Roboto-Regular",
+    },
+    textInput: {
+        width: "100%",
+        fontFamily: "Roboto-Regular",
+        color: "#000",
+        fontSize: 16,
+        padding: 16,
+        borderBottomWidth: 2,
+        borderBottomColor: "#E8E8E8",
+    },
+    formBtn: {
+        width: "100%",
+        paddingVertical: 16,
+        paddingHorizontal: 120,
+        backgroundColor: "#FF6C00",
+        borderRadius: 100,
+        marginTop: 16,
+    },
+    formBtnText: {
+        fontSize: 16,
+        fontFamily: "Roboto-Regular",
+        color: "#fff",
+        textAlign: "center",
+    },
+});

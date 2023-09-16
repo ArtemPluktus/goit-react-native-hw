@@ -61,7 +61,7 @@ export const LogInScreen = () => {
                     <Text style={styles.text}>Увійти</Text>
 
                     <View>
-                        <KeyboardAvoidingView style={styles.form} behavior={Platform.OS == "ios" ? "padding" : "height"}>
+                        <KeyboardAvoidingView style={styles.form} behavior={Platform.OS !== "ios" ? "padding" : "height"}>
                             <TextInput
                                 type="email"
                                 placeholder="Адреса електронної пошти"
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
         fontStyle: "normal",
     },
     nav: {
-        marginTop: 16,
+        marginTop: 36,
     },
     navText: {
         textAlign: "center",

@@ -4,7 +4,8 @@ import {
     StyleSheet,
     Text,
     View,
-    TouchableOpacity
+    TouchableOpacity,
+    ScrollView
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useNavigation } from '@react-navigation/native';
@@ -36,15 +37,49 @@ export const HomeScreen = () => {
                     <Image source={require("../assets/img/LogOut.png")} />
                 </TouchableOpacity>
             </View>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.content}>
+                    <View style={styles.contentPost}>
+                        <View style={styles.contentImg} />
+                        <Text style={styles.contentText}>Опис</Text>
+                        <View style={styles.location}>
+                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
+                            <Text style={styles.locatinText}>Місцезнаходження</Text>
+                        </View>
+
+                    </View>
+                    <View style={styles.contentPost}>
+                        <View style={styles.contentImg} />
+                        <Text style={styles.contentText}>Опис</Text>
+                        <View style={styles.location}>
+                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
+                            <Text style={styles.locatinText}>Місцезнаходження</Text>
+                        </View>
+
+                    </View>
+                    <View style={styles.contentPost}>
+                        <View style={styles.contentImg} />
+                        <Text style={styles.contentText}>Опис</Text>
+                        <View style={styles.location}>
+                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
+                            <Text style={styles.locatinText}>Місцезнаходження</Text>
+                        </View>
+
+                    </View>
+                </View>
+            </ScrollView>
+
             <TouchableOpacity style={styles.post} onPress={() => navigation.navigate("Post")}>
                 <Image source={require('../assets/img/post.png')} style={styles.postImg} />
             </TouchableOpacity>
         </View>
-
     )
 }
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+    },
     header: {
         display: 'flex',
         flexDirection: 'row',
@@ -54,7 +89,8 @@ const styles = StyleSheet.create({
         width: "100%",
         borderBottomWidth: 1,
         borderBottomColor: '#000',
-        position: 'fixed'
+        position: 'fixed',
+        marginTop: 20,
     },
     account: {
         display: 'flex',
@@ -67,18 +103,56 @@ const styles = StyleSheet.create({
         fontFamily: "Roboto-Medium",
     },
     post: {
-        width: '0%',
+        width: 70, // Змініть це значення на бажаний розмір кнопки
         paddingVertical: 15,
         paddingHorizontal: 35,
         backgroundColor: "#FF6C00",
         borderRadius: 20,
         position: 'absolute',
-        top: "1000%",
-        left: '41%',
+        bottom: 20, // Змініть це значення, щоб розташувати кнопку на бажаній позиції
+        left: '50%', // Змініть це значення на '50%', щоб розташувати кнопку по центру горизонтально
+        marginLeft: -35,
+        marginBottom: 100,
     },
     postImg: {
         left: -7.5,
         width: 15,
         height: 15,
+    },
+    content: {
+        paddingHorizontal: 16,
+        paddingVertical: 32,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 32,
+        marginBottom: 140,
+    },
+    contentPost: {
+        display: 'flex',
+        flexDirection: "column",
+        gap: 16,
+    },
+    contentImg: {
+        width: '100%',
+        height: 240,
+        backgroundColor: 'green',
+        borderRadius: 8,
+    },
+    contentText: {
+        fontSize: 20,
+        fontFamily: "Roboto-Medium"
+    },
+    location: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 8,
+    },
+    locationImg: {
+        width: 24,
+        height: 24,
+    },
+    locatinText: {
+        fontSize: 16,
+        fontFamily: "Roboto-Medium"
     }
 })
