@@ -13,12 +13,15 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/native";
+import * as ImagePicker from 'expo-image-picker';
 
 export const PostScreen = () => {
     const navigation = useNavigation();
 
     const [description, setDescription] = useState("");
     const [location, setLocation] = useState("");
+    const [permission, setPermission] = useState(null);
+    const [photo, setPhoto] = useState("");
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -29,8 +32,30 @@ export const PostScreen = () => {
         return null;
     };
 
+    const onImagePick = async () => {
+        const status = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        setPermission(status.status === 'granted');
+    
+        if(permission == false){
+            return;
+        }
+    
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4,3],
+            quality: 1,
+        });
+    
+        setPhoto(result.assets[0].uri);
+      };
+    
+      const onDeletePhoto = () => {
+        setPhoto("");
+      };
+
     const onPost = () => {
-        console.log(`Description: ${description}, Location: ${location}`);
+        console.log(`Photo: ${photo}, Description: ${description}, Location: ${location}`);
         setDescription("");
         setLocation("");
         navigation.navigate("Home");
@@ -49,12 +74,19 @@ export const PostScreen = () => {
                 <View>
                     <KeyboardAvoidingView style={styles.form} behavior={Platform.OS !== "ios" ? "padding" : "height"} >
                         <View style={styles.postPhoto}>
-                            <TouchableOpacity style={styles.photoPlace}>
-                                <Image
-                                    source={require("../assets/img/postPhoto.png")}
-                                    style={styles.photoImg}
-                                />
-                            </TouchableOpacity>
+                        {photo ? (
+                <Image style={styles.photoPlace} source={{uri: photo}} />
+              ) : (
+                <TouchableOpacity
+                  style={styles.photoPlace}
+                  onPress={() => onImagePick()}
+                >
+                  <Image
+                    source={require("../assets/img/postPhoto.png")}
+                    style={styles.photoImg}
+                  />
+                </TouchableOpacity>
+              )}
                             <TouchableOpacity style={styles.delete}>
                                 <Text style={styles.deleteText}>Видалити фото</Text>
                             </TouchableOpacity>
