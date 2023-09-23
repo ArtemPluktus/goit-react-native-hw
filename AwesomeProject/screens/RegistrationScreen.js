@@ -15,12 +15,22 @@ import {
 import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import { useDispatch } from "react-redux";
+import { register } from "../redux/authSlice.js";
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth, db, storage } from '../config.js';
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 export const RegistrationScreen = () => {
+
+  const dispatch = useDispatch();
+
   const navigation = useNavigation();
 
-  const [login, setLogin] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [isEmailValid, setEmailValid] = useState(true);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(true);
   const [showPassText, setShowPassText] = useState("Показати");
@@ -28,7 +38,7 @@ export const RegistrationScreen = () => {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [permission, setPermission] = useState(null);
-  const [photo, setPhoto] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
 
   const [fontsLoaded] = useFonts({
     "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -43,9 +53,10 @@ export const RegistrationScreen = () => {
     const status = await ImagePicker.requestMediaLibraryPermissionsAsync();
     setPermission(status.status === "granted");
 
-    if (status == false) {
+    if (status.status !== "granted") {
+      Alert.alert("Помилка", "Дозвіл на доступ до медіатеки не надано.");
       return;
-    }
+    };
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -54,21 +65,85 @@ export const RegistrationScreen = () => {
       quality: 1,
     });
 
-    setPhoto(result.assets[0].uri);
+    setPhotoURL(result.assets[0].uri);
   };
 
   const onDeletePhoto = () => {
-    setPhoto("");
+    setPhotoURL("");
   };
 
-  const onRegister = () => {
-    if (!login ?? !email ?? !password) {
-      return Alert.alert("Заповніть форму цілком");
-    }
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    setEmailValid(validateEmail(text));
+  };
 
-    console.log(`Photo: ${photo}; Login: "${login}"; Email: "${email}"; Password "${password}"`);
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const onRegister = async () => {
+    if (!displayName && !email && !password) {
+      return Alert.alert("Помилка", "Заповніть форму цілком");
+    };
+
+    if (!isEmailValid) {
+      return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
+    };
+
+    if(password.length < 6){
+      return Alert.alert("Помилка", "Пароль меє містити від 6ти символів");
+    };
+
+    console.log(`Photo: ${photoURL}; Login: "${displayName}"; Email: "${email}"; Password "${password}"`);
+
+    // createUserWithEmailAndPassword(auth, email, password).then( async (response) => { 
+
+    //     const uid = response.user.uid;
+
+    //     const userObj = {
+    //       uid: uid,
+    //       displayName: displayName,
+    //       photoURL: photoURL.substring(photoURL.lastIndexOf('/') + 1),
+    //       email: email,
+    //       posts: [],
+    //     };
+      
+    //     dispatch(register({ displayName: displayName, photoURL: photoURL.substring(photoURL.lastIndexOf('/') + 1), email: email, uid: uid, posts: [] }));
+
+    //     setDoc(doc(db, "users", uid), userObj);
+    //   }).catch(console.log);
+    try{
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+  
+      const storageRef = ref(storage, displayName);
+  
+      await uploadBytesResumable(storageRef, photoURL).then(() => {
+          getDownloadURL(storageRef).then(async (downloadURL) => {
+            await updateProfile(res.user, {
+              displayName,
+              photoURL: downloadURL,
+            });
+            await setDoc(doc(db, "users", res.user.uid), {
+              uid: res.user.uid,
+              displayName,
+              email,
+              photoURL: downloadURL,
+              posts: [],
+            });
+            dispatch(register({ displayName: displayName, photoURL: downloadURL, email: email, uid: res.user.uid, posts: [] }));
+          });
+        }
+      );      
+    } catch(error){
+      console.log(error);
+    };
+    
+
     navigation.navigate("Home");
-    setLogin("");
+
+
+    setDisplayName("");
     setEmail("");
     setPassword("");
     setShowPassword(true);
@@ -86,9 +161,9 @@ export const RegistrationScreen = () => {
         <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
         <View style={styles.register}>
           <View>
-            {photo ? (
+            {photoURL ? (
               <TouchableOpacity onPress={() => onDeletePhoto()}>
-                <Image source={{ uri: photo }} style={styles.photo} />
+                <Image source={{ uri: photoURL }} style={styles.photo} />
 
                 <Image
                   source={require("../assets/img/cross.png")}
@@ -122,8 +197,8 @@ export const RegistrationScreen = () => {
                   styles.formItem,
                   loginFocused ? styles.formItemFocused : null,
                 ]}
-                value={login}
-                onChangeText={setLogin}
+                value={displayName}
+                onChangeText={setDisplayName}
                 onFocus={() => setLoginFocused(true)}
                 onBlur={() => setLoginFocused(false)}
               />
@@ -135,8 +210,8 @@ export const RegistrationScreen = () => {
                   styles.formItem,
                   emailFocused ? styles.formItemFocused : null,
                 ]}
-                value={email}
-                onChangeText={setEmail}
+                value={email} 
+                onChangeText={handleEmailChange}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
               />
@@ -219,7 +294,7 @@ const styles = StyleSheet.create({
     height: 35,
     position: "absolute",
     bottom: -50,
-    right: '30%'
+    right: '31%'
   },
   text: {
     fontFamily: "Roboto-Medium",
@@ -266,7 +341,7 @@ const styles = StyleSheet.create({
   },
   showPass: {
     position: "absolute",
-    top: 176,
+    top: "55%",
     right: 16,
   },
   showPassText: {

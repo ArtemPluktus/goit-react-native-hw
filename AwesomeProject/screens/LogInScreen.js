@@ -14,12 +14,16 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useNavigation } from '@react-navigation/native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../config.js';
+import { logIn } from "../redux/authSlice.js";
 
 export const LogInScreen = () => {
 
     const navigation = useNavigation();
 
     const [email, setEmail] = useState("");
+    const [isEmailValid, setEmailValid] = useState(true);
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(true);
     const [showPassText, setShowPassText] = useState("Показати");
@@ -33,15 +37,31 @@ export const LogInScreen = () => {
 
     if (!fontsLoaded) {
         return null;
-    }
+    };
+
+    const handleEmailChange = (text) => {
+        setEmail(text);
+        setEmailValid(validateEmail(text));
+      };
+    
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     const onLogIn = () => {
         if (!email ?? !password) {
-            return Alert.alert("Заповніть форму цілком");
-        }
+            return Alert.alert("Помилка", "Заповніть форму цілком");
+        };
+        
+        if (!isEmailValid) {
+            return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
+        };
 
         console.log(`Email: "${email}"; Password "${password}"`);
-        navigation.navigate("Home");
+
+        signInWithEmailAndPassword(auth, email, password).then(() => navigation.navigate("Home")).catch(() => {Alert.alert("Помилка", "Логін чи пароль невірні")});   
+
         setEmail("");
         setPassword("");
         setShowPassword(true);
@@ -68,7 +88,7 @@ export const LogInScreen = () => {
                                 required
                                 style={[styles.formItem, emailFocused ? styles.formItemFocused : null]}
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={handleEmailChange}
                                 onFocus={() => setEmailFocused(true)}
                                 onBlur={() => setEmailFocused(false)}
                             />
@@ -187,7 +207,7 @@ const styles = StyleSheet.create({
     },
     showPass: {
         position: "absolute",
-        top: 96,
+        top: "40%",
         right: 16,
     },
     showPassText: {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import {
     Image,
     StyleSheet,
@@ -9,9 +9,25 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from "react-redux";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../config.js';
 
 export const HomeScreen = () => {
+
+    const [name, setName] = useState("");
+    const [photo, setPhoto] = useState("");
+
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            console.log(user.displayName, user.photoURL);
+            setName(user.displayName);
+            setPhoto(user.photoURL);
+        })
+    }, []);
+
     const navigation = useNavigation();
+    
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -20,18 +36,18 @@ export const HomeScreen = () => {
 
     if (!fontsLoaded) {
         return null;
-    }
+    };
 
     const onLogOut = () => {
         navigation.navigate("Login");
-    }
+    };
 
     return (
         <View>
             <View style={styles.header}>
                 <View style={styles.account}>
-                    <Image source={require("../assets/favicon.png")} style={styles.avatar} />
-                    <Text style={styles.name}>Name</Text>
+                    <Image source={{uri: photo}} style={styles.avatar} />
+                    <Text style={styles.name}>{name}</Text>
                 </View>
                 <TouchableOpacity style={styles.logout} onPress={onLogOut}>
                     <Image source={require("../assets/img/LogOut.png")} />
@@ -101,6 +117,10 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 16,
         fontFamily: "Roboto-Medium",
+    },
+    avatar: {
+        width: 50,
+        height: 50,
     },
     post: {
         width: 70, // Змініть це значення на бажаний розмір кнопки
