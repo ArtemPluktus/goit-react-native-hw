@@ -17,8 +17,11 @@ import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config.js';
 import { logIn } from "../redux/authSlice.js";
+import { useDispatch } from "react-redux";
 
 export const LogInScreen = () => {
+
+    const dispatch = useDispatch();
 
     const navigation = useNavigation();
 
@@ -42,8 +45,8 @@ export const LogInScreen = () => {
     const handleEmailChange = (text) => {
         setEmail(text);
         setEmailValid(validateEmail(text));
-      };
-    
+    };
+
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -53,14 +56,18 @@ export const LogInScreen = () => {
         if (!email ?? !password) {
             return Alert.alert("Помилка", "Заповніть форму цілком");
         };
-        
+
         if (!isEmailValid) {
             return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
         };
 
         console.log(`Email: "${email}"; Password "${password}"`);
 
-        signInWithEmailAndPassword(auth, email, password).then(() => navigation.navigate("Home")).catch(() => {Alert.alert("Помилка", "Логін чи пароль невірні")});   
+        signInWithEmailAndPassword(auth, email, password).then((response) => {
+            console.log(response.user);
+            dispatch(logIn({ displayName: response.user.displayName, photoURL: response.user.photoURL, email: response.user.email, uid: response.user.uid }));
+            navigation.navigate("Home");
+        }).catch(() => { Alert.alert("Помилка", "Логін чи пароль невірні") });
 
         setEmail("");
         setPassword("");

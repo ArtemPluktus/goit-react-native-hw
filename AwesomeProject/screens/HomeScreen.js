@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
     Image,
     StyleSheet,
@@ -9,25 +9,28 @@ import {
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from "react-redux";
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../config.js';
+import { auth } from '../config.js';
+import { logOut } from "../redux/authSlice.js";
+import { useDispatch } from "react-redux";
 
 export const HomeScreen = () => {
+
+    const dispatch = useDispatch();
 
     const [name, setName] = useState("");
     const [photo, setPhoto] = useState("");
 
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
-            console.log(user.displayName, user.photoURL);
             setName(user.displayName);
             setPhoto(user.photoURL);
-        })
+        });
     }, []);
 
     const navigation = useNavigation();
-    
+
+
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -38,7 +41,10 @@ export const HomeScreen = () => {
         return null;
     };
 
+
+
     const onLogOut = () => {
+        dispatch(logOut());
         navigation.navigate("Login");
     };
 
@@ -46,7 +52,7 @@ export const HomeScreen = () => {
         <View>
             <View style={styles.header}>
                 <View style={styles.account}>
-                    <Image source={{uri: photo}} style={styles.avatar} />
+                    <Image source={{ uri: photo }} style={styles.avatar} />
                     <Text style={styles.name}>{name}</Text>
                 </View>
                 <TouchableOpacity style={styles.logout} onPress={onLogOut}>
@@ -106,7 +112,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#000',
         position: 'fixed',
-        marginTop: 20,
+        marginTop: 30,
     },
     account: {
         display: 'flex',

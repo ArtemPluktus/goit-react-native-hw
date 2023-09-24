@@ -19,7 +19,7 @@ import { useDispatch } from "react-redux";
 import { register } from "../redux/authSlice.js";
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db, storage } from '../config.js';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 export const RegistrationScreen = () => {
@@ -91,35 +91,31 @@ export const RegistrationScreen = () => {
       return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
     };
 
-    if(password.length < 6){
+    if (password.length < 6) {
       return Alert.alert("Помилка", "Пароль меє містити від 6ти символів");
     };
 
     console.log(`Photo: ${photoURL}; Login: "${displayName}"; Email: "${email}"; Password "${password}"`);
 
-    // createUserWithEmailAndPassword(auth, email, password).then( async (response) => { 
-
-    //     const uid = response.user.uid;
-
-    //     const userObj = {
-    //       uid: uid,
-    //       displayName: displayName,
-    //       photoURL: photoURL.substring(photoURL.lastIndexOf('/') + 1),
-    //       email: email,
-    //       posts: [],
-    //     };
-      
-    //     dispatch(register({ displayName: displayName, photoURL: photoURL.substring(photoURL.lastIndexOf('/') + 1), email: email, uid: uid, posts: [] }));
-
-    //     setDoc(doc(db, "users", uid), userObj);
-    //   }).catch(console.log);
-    try{
+    try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
-  
+
+      const response = await fetch(photoURL);
+
+      const blob = await response.blob();
+
       const storageRef = ref(storage, displayName);
-  
-      await uploadBytesResumable(storageRef, photoURL).then(() => {
-          getDownloadURL(storageRef).then(async (downloadURL) => {
+
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      uploadTask.on("state_changed", (snapshot) => {
+        const proress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log("Progress", proress);
+      }, (error) => {
+        console.log(error);
+      },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             await updateProfile(res.user, {
               displayName,
               photoURL: downloadURL,
@@ -131,20 +127,20 @@ export const RegistrationScreen = () => {
               photoURL: downloadURL,
               posts: [],
             });
-            dispatch(register({ displayName: displayName, photoURL: downloadURL, email: email, uid: res.user.uid, posts: [] }));
+            await dispatch(register({ displayName: displayName, photoURL: downloadURL, email: email, uid: res.user.uid, posts: [] }));
+
+            await navigation.navigate("Home");
           });
         }
-      );      
-    } catch(error){
+      );
+    } catch (error) {
       console.log(error);
     };
-    
-
-    navigation.navigate("Home");
 
 
     setDisplayName("");
     setEmail("");
+    setPhotoURL("");
     setPassword("");
     setShowPassword(true);
     setShowPassText("Показати");
@@ -210,7 +206,7 @@ export const RegistrationScreen = () => {
                   styles.formItem,
                   emailFocused ? styles.formItemFocused : null,
                 ]}
-                value={email} 
+                value={email}
                 onChangeText={handleEmailChange}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
@@ -280,7 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     position: "absolute",
     top: -60,
-    right: 135,
+    right: "35%",
   },
   photoPlus: {
     width: 25,
@@ -294,7 +290,7 @@ const styles = StyleSheet.create({
     height: 35,
     position: "absolute",
     bottom: -50,
-    right: '31%'
+    right: '30.5%'
   },
   text: {
     fontFamily: "Roboto-Medium",
@@ -351,7 +347,7 @@ const styles = StyleSheet.create({
     fontStyle: "normal",
   },
   nav: {
-    marginTop: 16,
+    marginTop: 32,
   },
   navText: {
     textAlign: "center",
