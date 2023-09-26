@@ -183,7 +183,7 @@ export const RegistrationScreen = () => {
           <View>
             <KeyboardAvoidingView
               style={styles.form}
-              behavior={Platform.OS !== "ios" ? "padding" : "height"}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
               <TextInput
                 type="text"

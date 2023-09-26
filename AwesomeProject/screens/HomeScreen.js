@@ -8,11 +8,14 @@ import {
     ScrollView
 } from "react-native";
 import { useFonts } from "expo-font";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../config.js';
-import { logOut } from "../redux/authSlice.js";
+import { auth, db, storage } from '../config.js';
+import { logIn, logOut } from "../redux/authSlice.js";
 import { useDispatch } from "react-redux";
+import { collection, getDocs, doc, query, where, deleteDoc } from 'firebase/firestore';
+import { ref, deleteObject } from "firebase/storage";
+
 
 export const HomeScreen = () => {
 
@@ -21,12 +24,57 @@ export const HomeScreen = () => {
     const [name, setName] = useState("");
     const [photo, setPhoto] = useState("");
 
+    const [posts, setPosts] = useState([]);
+
+    const isFocused = useIsFocused();
+
+    // useEffect(() => {
+    // onAuthStateChanged(auth, async (user) => {
+    //     setName(user.displayName);
+    //     setPhoto(user.photoURL);
+    //     const q = query(collection(db, 'usersPosts'), where("displayName", "==", user.displayName));
+    //     const querySnapshot = await getDocs(q);
+    //     const newPosts = querySnapshot.docs.map((doc) => {
+    //         const data = doc.data();
+    //         return {
+    //             photo: data.photoURL,
+    //             description: data.description,
+    //             id: data.id,
+    //         };
+    //     });
+
+    //     setPosts(newPosts);
+    // });
+
+    // }, []);
+
     useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
+        if (isFocused) {
+            fetchData();
+        }
+    }, [isFocused]);
+
+
+
+    async function fetchData() {
+        onAuthStateChanged(auth, async (user) => {
             setName(user.displayName);
             setPhoto(user.photoURL);
+            const q = query(collection(db, 'usersPosts'), where("displayName", "==", user.displayName));
+            const querySnapshot = await getDocs(q);
+            const newPosts = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    photo: data.photoURL,
+                    description: data.description,
+                    id: data.id,
+                };
+            });
+
+            setPosts(newPosts);
         });
-    }, []);
+    }
+
 
     const navigation = useNavigation();
 
@@ -43,13 +91,27 @@ export const HomeScreen = () => {
 
 
 
-    const onLogOut = () => {
+    const onLogOut = async () => {
+        try {
+            await auth().signOut();
+        } catch (error) {
+            console.log(error);
+        }
         dispatch(logOut());
         navigation.navigate("Login");
     };
 
+    onDelete = async (id) => {
+        await deleteDoc(doc(db, "usersPosts", id));
+        const deleteRef = ref(storage, id);
+
+        deleteObject(deleteRef);
+
+        fetchData();
+    };
+
     return (
-        <View>
+        <View style={styles.homepage}>
             <View style={styles.header}>
                 <View style={styles.account}>
                     <Image source={{ uri: photo }} style={styles.avatar} />
@@ -59,39 +121,29 @@ export const HomeScreen = () => {
                     <Image source={require("../assets/img/LogOut.png")} />
                 </TouchableOpacity>
             </View>
+
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.content}>
-                    <View style={styles.contentPost}>
-                        <View style={styles.contentImg} />
-                        <Text style={styles.contentText}>Опис</Text>
-                        <View style={styles.location}>
-                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
-                            <Text style={styles.locatinText}>Місцезнаходження</Text>
-                        </View>
+                    {posts.map((post, index) => {
+                        return (
+                            <View key={index} style={styles.contentPost}>
+                                <Image source={{ uri: post.photo }} style={styles.contentImg} />
+                                <View style={styles.description}>
+                                    <Text style={styles.contentText}>{post.description}</Text>
+                                    <TouchableOpacity onPress={() => onDelete(post.id)}>
+                                        <Image source={require('../assets/img/delete.png')} style={styles.delete} />
+                                    </TouchableOpacity>
+                                </View>
 
-                    </View>
-                    <View style={styles.contentPost}>
-                        <View style={styles.contentImg} />
-                        <Text style={styles.contentText}>Опис</Text>
-                        <View style={styles.location}>
-                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
-                            <Text style={styles.locatinText}>Місцезнаходження</Text>
-                        </View>
-
-                    </View>
-                    <View style={styles.contentPost}>
-                        <View style={styles.contentImg} />
-                        <Text style={styles.contentText}>Опис</Text>
-                        <View style={styles.location}>
-                            <Image source={require("../assets/img/map.png")} style={styles.locationImg} />
-                            <Text style={styles.locatinText}>Місцезнаходження</Text>
-                        </View>
-
-                    </View>
+                            </View>
+                        );
+                    })}
                 </View>
             </ScrollView>
 
-            <TouchableOpacity style={styles.post} onPress={() => navigation.navigate("Post")}>
+            <TouchableOpacity style={styles.post} onPress={() => {
+                navigation.navigate("Post", { fetchData });
+            }}>
                 <Image source={require('../assets/img/post.png')} style={styles.postImg} />
             </TouchableOpacity>
         </View>
@@ -129,14 +181,14 @@ const styles = StyleSheet.create({
         height: 50,
     },
     post: {
-        width: 70, // Змініть це значення на бажаний розмір кнопки
+        width: 70,
         paddingVertical: 15,
         paddingHorizontal: 35,
         backgroundColor: "#FF6C00",
         borderRadius: 20,
         position: 'absolute',
-        bottom: 20, // Змініть це значення, щоб розташувати кнопку на бажаній позиції
-        left: '50%', // Змініть це значення на '50%', щоб розташувати кнопку по центру горизонтально
+        bottom: 20,
+        left: '50%',
         marginLeft: -35,
         marginBottom: 100,
     },
@@ -151,7 +203,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'column',
         gap: 32,
-        marginBottom: 140,
+        marginBottom: 150,
     },
     contentPost: {
         display: 'flex',
@@ -161,12 +213,23 @@ const styles = StyleSheet.create({
     contentImg: {
         width: '100%',
         height: 240,
-        backgroundColor: 'green',
         borderRadius: 8,
+    },
+    description: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    delete: {
+        width: 40,
+        height: 40,
     },
     contentText: {
         fontSize: 20,
-        fontFamily: "Roboto-Medium"
+        fontFamily: "Roboto-Medium",
+        marginLeft: 5,
+        width: '85%',
     },
     location: {
         display: 'flex',

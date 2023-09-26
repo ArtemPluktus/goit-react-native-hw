@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Image,
     StyleSheet,
@@ -14,14 +14,43 @@ import {
 import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from 'expo-image-picker';
+import { collection, getDocs, doc, query, where, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db, storage } from '../config.js';
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 export const PostScreen = () => {
     const navigation = useNavigation();
 
     const [description, setDescription] = useState("");
-    const [location, setLocation] = useState("");
     const [permission, setPermission] = useState(null);
-    const [photo, setPhoto] = useState("");
+    const [photoURL, setPhotoURL] = useState("");
+    const [displayName, setDisplayName] = useState("");
+    const [email, setEmail] = useState("");
+    const [postPhoto, setPostPhoto] = useState("");
+    const [uid, setUid] = useState("");
+
+    useEffect(() => {
+        onAuthStateChanged(auth, async (user) => {
+            setDisplayName(user.displayName);
+            setPhotoURL(user.photoURL);
+            setUid(user.uid);
+            setEmail(user.email);
+            await getData(user.displayName);
+        });
+
+    }, []);
+
+    async function getData(name) {
+        const q = query(collection(db, 'users'), where("displayName", "==", name));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc => {
+            const data = doc.data();
+            console.log(data);
+        }));
+    };
+
+
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -35,31 +64,67 @@ export const PostScreen = () => {
     const onImagePick = async () => {
         const status = await ImagePicker.requestMediaLibraryPermissionsAsync();
         setPermission(status.status === 'granted');
-    
-        if(permission == false){
+
+        if (permission == false) {
             return;
         }
-    
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4,3],
+            aspect: [4, 3],
             quality: 1,
         });
-    
-        setPhoto(result.assets[0].uri);
-      };
-    
-      const onDeletePhoto = () => {
-        setPhoto("");
-      };
 
-    const onPost = () => {
-        console.log(`Photo: ${photo}, Description: ${description}, Location: ${location}`);
+        setPostPhoto(result.assets[0].uri);
+    };
+
+    const onDeletePhoto = () => {
+        setPostPhoto("");
+    };
+
+    const onPost = async () => {
+        console.log(`Photo: ${postPhoto}, Description: ${description}`);
+
+        try {
+            const response = await fetch(postPhoto);
+
+            const blob = await response.blob();
+
+            const date = new Date();
+
+            const storageRef = ref(storage, `${displayName} ${date}`);
+
+            const uploadTask = uploadBytesResumable(storageRef, blob);
+
+            uploadTask.on("state_changed", (snapshot) => {
+                const proress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log("Progress", proress);
+            }, (error) => {
+                console.log(error);
+            },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+                        await setDoc(doc(db, "usersPosts", `${displayName} ${date}`), {
+                            displayName,
+                            photoURL: downloadURL,
+                            description,
+                            id: `${displayName} ${date}`,
+                        });
+                        await navigation.navigate("Home");
+
+                    });
+                }
+            );
+        } catch (error) {
+            console.log(error);
+        };
+
+
+
+        setPostPhoto("");
         setDescription("");
-        setLocation("");
-        navigation.navigate("Home");
-    }
+    };
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -72,35 +137,31 @@ export const PostScreen = () => {
                     <Text style={styles.title}>Створити публікацію</Text>
                 </View>
                 <View>
-                    <KeyboardAvoidingView style={styles.form} behavior={Platform.OS !== "ios" ? "padding" : "height"} >
+                    <KeyboardAvoidingView style={styles.form} behavior={Platform.OS === "ios" ? "padding" : "height"} >
                         <View style={styles.postPhoto}>
-                        {photo ? (
-                <Image style={styles.photoPlace} source={{uri: photo}} />
-              ) : (
-                <TouchableOpacity
-                  style={styles.photoPlace}
-                  onPress={() => onImagePick()}
-                >
-                  <Image
-                    source={require("../assets/img/postPhoto.png")}
-                    style={styles.photoImg}
-                  />
-                </TouchableOpacity>
-              )}
-                            <TouchableOpacity style={styles.delete}>
+                            {postPhoto ? (
+                                <Image style={styles.photoPlace} source={{ uri: postPhoto }} />
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.photoPlace}
+                                    onPress={() => onImagePick()}
+                                >
+                                    <Image
+                                        source={require("../assets/img/postPhoto.png")}
+                                        style={styles.photoImg}
+                                    />
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity style={styles.delete} onPress={onDeletePhoto}>
                                 <Text style={styles.deleteText}>Видалити фото</Text>
                             </TouchableOpacity>
                         </View>
                         <TextInput type="text"
                             placeholder="Опис"
+                            multiline
                             required style={styles.textInput}
                             value={description}
                             onChangeText={setDescription} />
-                        <TextInput type="text"
-                            placeholder="Місцевість"
-                            required style={styles.textInput}
-                            value={location}
-                            onChangeText={setLocation} />
                         <TouchableOpacity style={styles.formBtn} onPress={onPost}>
                             <Text style={styles.formBtnText}>Опублікувати</Text>
                         </TouchableOpacity>
