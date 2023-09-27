@@ -15,6 +15,7 @@ import { logIn, logOut } from "../redux/authSlice.js";
 import { useDispatch } from "react-redux";
 import { collection, getDocs, doc, query, where, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from "firebase/storage";
+import { TypingAnimation } from 'react-native-typing-animation';
 
 
 export const HomeScreen = () => {
@@ -142,7 +143,7 @@ export const HomeScreen = () => {
             </ScrollView>
 
             <TouchableOpacity style={styles.post} onPress={() => {
-                navigation.navigate("Post", { fetchData });
+                navigation.navigate("Post");
             }}>
                 <Image source={require('../assets/img/post.png')} style={styles.postImg} />
             </TouchableOpacity>

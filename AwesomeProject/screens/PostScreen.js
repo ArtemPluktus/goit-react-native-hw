@@ -18,6 +18,7 @@ import { collection, getDocs, doc, query, where, setDoc } from 'firebase/firesto
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, storage } from '../config.js';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { TypingAnimation } from 'react-native-typing-animation';
 
 export const PostScreen = () => {
     const navigation = useNavigation();
@@ -29,6 +30,7 @@ export const PostScreen = () => {
     const [email, setEmail] = useState("");
     const [postPhoto, setPostPhoto] = useState("");
     const [uid, setUid] = useState("");
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         onAuthStateChanged(auth, async (user) => {
@@ -86,6 +88,7 @@ export const PostScreen = () => {
     const onPost = async () => {
         console.log(`Photo: ${postPhoto}, Description: ${description}`);
 
+        setLoading(true);
         try {
             const response = await fetch(postPhoto);
 
@@ -113,6 +116,7 @@ export const PostScreen = () => {
                         });
                         await navigation.navigate("Home");
 
+                        await setLoading(false);
                     });
                 }
             );
@@ -128,7 +132,16 @@ export const PostScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View>
+            {loading ? <TypingAnimation
+                dotColor="black"
+                dotMargin={70}
+                dotAmplitude={10}
+                dotSpeed={0.15}
+                dotRadius={20}
+                dotX={12}
+                dotY={6}
+                style={styles.loader}
+            /> : <View>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.navigate("Home")}>
                         <Image source={require("../assets/img/back.png")} />
@@ -167,12 +180,18 @@ export const PostScreen = () => {
                         </TouchableOpacity>
                     </KeyboardAvoidingView>
                 </View>
-            </View>
+            </View>}
+
         </TouchableWithoutFeedback>
     );
 };
 
 const styles = StyleSheet.create({
+    loader: {
+        marginTop: "95%",
+        marginLeft: 'auto',
+        marginRight: "57%",
+    },
     header: {
         display: "flex",
         flexDirection: "row",

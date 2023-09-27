@@ -21,6 +21,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db, storage } from '../config.js';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { TypingAnimation } from 'react-native-typing-animation';
 
 export const RegistrationScreen = () => {
 
@@ -39,6 +40,7 @@ export const RegistrationScreen = () => {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [permission, setPermission] = useState(null);
   const [photoURL, setPhotoURL] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [fontsLoaded] = useFonts({
     "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -97,6 +99,8 @@ export const RegistrationScreen = () => {
 
     console.log(`Photo: ${photoURL}; Login: "${displayName}"; Email: "${email}"; Password "${password}"`);
 
+    setLoading(true);
+
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -130,6 +134,8 @@ export const RegistrationScreen = () => {
             await dispatch(register({ displayName: displayName, photoURL: downloadURL, email: email, uid: res.user.uid, posts: [] }));
 
             await navigation.navigate("Home");
+
+            await setLoading(false);
           });
         }
       );
@@ -153,7 +159,16 @@ export const RegistrationScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+      {loading ? <TypingAnimation
+        dotColor="black"
+        dotMargin={70}
+        dotAmplitude={10}
+        dotSpeed={0.15}
+        dotRadius={20}
+        dotX={12}
+        dotY={6}
+        style={styles.loader}
+      /> : <View style={styles.container}>
         <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
         <View style={styles.register}>
           <View>
@@ -178,7 +193,7 @@ export const RegistrationScreen = () => {
               </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.text}>Реєстрація</Text>
+          <Text style={styles.textRegister}>Реєстрація</Text>
 
           <View>
             <KeyboardAvoidingView
@@ -240,12 +255,18 @@ export const RegistrationScreen = () => {
             <Text style={styles.navText}>Вже є акаунт? Увійти</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View>}
+
     </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
+  loader: {
+    marginTop: "95%",
+    marginLeft: 'auto',
+    marginRight: "57%",
+  },
   container: {
     flex: 1,
     width: "100%",
@@ -292,7 +313,7 @@ const styles = StyleSheet.create({
     bottom: -50,
     right: '30.5%'
   },
-  text: {
+  textRegister: {
     fontFamily: "Roboto-Medium",
     fontSize: 30,
     textAlign: "center",

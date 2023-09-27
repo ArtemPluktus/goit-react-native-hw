@@ -18,6 +18,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config.js';
 import { logIn } from "../redux/authSlice.js";
 import { useDispatch } from "react-redux";
+import { TypingAnimation } from 'react-native-typing-animation';
 
 export const LogInScreen = () => {
 
@@ -32,6 +33,7 @@ export const LogInScreen = () => {
     const [showPassText, setShowPassText] = useState("Показати");
     const [emailFocused, setEmailFocused] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const [fontsLoaded] = useFonts({
         "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
@@ -63,10 +65,13 @@ export const LogInScreen = () => {
 
         console.log(`Email: "${email}"; Password "${password}"`);
 
+        setLoading(true);
+
         signInWithEmailAndPassword(auth, email, password).then((response) => {
             console.log(response.user);
             dispatch(logIn({ displayName: response.user.displayName, photoURL: response.user.photoURL, email: response.user.email, uid: response.user.uid }));
             navigation.navigate("Home");
+            setLoading(false);
         }).catch(() => { Alert.alert("Помилка", "Логін чи пароль невірні") });
 
         setEmail("");
@@ -82,10 +87,19 @@ export const LogInScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
+            {loading ? <TypingAnimation
+                dotColor="black"
+                dotMargin={70}
+                dotAmplitude={10}
+                dotSpeed={0.15}
+                dotRadius={20}
+                dotX={12}
+                dotY={6}
+                style={styles.loader}
+            /> : <View style={styles.container}>
                 <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
                 <View style={styles.logIn}>
-                    <Text style={styles.text}>Увійти</Text>
+                    <Text style={styles.textLogIN}>Увійти</Text>
 
                     <View>
                         <KeyboardAvoidingView style={styles.form} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -124,12 +138,18 @@ export const LogInScreen = () => {
 
 
                 </View>
-            </View>
+            </View>}
+
         </TouchableWithoutFeedback >
     );
 };
 
 const styles = StyleSheet.create({
+    loader: {
+        marginTop: "95%",
+        marginLeft: 'auto',
+        marginRight: "57%",
+    },
     container: {
         flex: 1,
         width: "100%",
@@ -169,7 +189,7 @@ const styles = StyleSheet.create({
         bottom: 14,
         left: 107,
     },
-    text: {
+    textLogIN: {
         fontFamily: "Roboto-Medium",
         fontSize: 30,
         textAlign: "center",
