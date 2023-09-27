@@ -150,6 +150,8 @@ export const RegistrationScreen = () => {
     setPassword("");
     setShowPassword(true);
     setShowPassText("Показати");
+    setPasswordFocused(false);
+    setEmailFocused(false); s
   };
 
   const showPass = () => {
