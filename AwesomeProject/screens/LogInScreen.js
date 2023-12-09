@@ -30,7 +30,7 @@ export const LogInScreen = () => {
     const [isEmailValid, setEmailValid] = useState(true);
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(true);
-    const [showPassText, setShowPassText] = useState("Показати");
+    const [showPassText, setShowPassText] = useState("Show");
     const [emailFocused, setEmailFocused] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -56,11 +56,11 @@ export const LogInScreen = () => {
 
     const onLogIn = () => {
         if (!email ?? !password) {
-            return Alert.alert("Помилка", "Заповніть форму цілком");
+            return Alert.alert("Error", "Fill out the form completely");
         };
 
         if (!isEmailValid) {
-            return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
+            return Alert.alert("Error", "Please enter a valid email address");
         };
 
         console.log(`Email: "${email}"; Password "${password}"`);
@@ -72,17 +72,17 @@ export const LogInScreen = () => {
             dispatch(logIn({ displayName: response.user.displayName, photoURL: response.user.photoURL, email: response.user.email, uid: response.user.uid }));
             navigation.navigate("Home");
             setLoading(false);
-        }).catch(() => { Alert.alert("Помилка", "Логін чи пароль невірні") });
+        }).catch(() => { Alert.alert("Error", "Login or password is incorrect"); navigation.navigate("Login"); setLoading(false); });
 
         setEmail("");
         setPassword("");
         setShowPassword(true);
-        setShowPassText("Показати");
+        setShowPassText("Show");
     };
 
     const showPass = () => {
         setShowPassword(!showPassword);
-        setShowPassText(!showPassword ? "Показати" : "Скрити");
+        setShowPassText(!showPassword ? "Show" : "Hide");
     };
 
     return (
@@ -99,13 +99,13 @@ export const LogInScreen = () => {
             /> : <View style={styles.container}>
                 <Image source={require("../assets/img/bg.jpg")} style={styles.image} />
                 <View style={styles.logIn}>
-                    <Text style={styles.textLogIN}>Увійти</Text>
+                    <Text style={styles.textLogIN}>Log In</Text>
 
                     <View>
                         <KeyboardAvoidingView style={styles.form} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                             <TextInput
                                 type="email"
-                                placeholder="Адреса електронної пошти"
+                                placeholder="E-Mail"
                                 required
                                 style={[styles.formItem, emailFocused ? styles.formItemFocused : null]}
                                 value={email}
@@ -115,7 +115,7 @@ export const LogInScreen = () => {
                             />
                             <TextInput
                                 type="password"
-                                placeholder="Пароль"
+                                placeholder="Password"
                                 required
                                 style={[styles.formItem, passwordFocused ? styles.formItemFocused : null]}
                                 value={password}
@@ -128,12 +128,12 @@ export const LogInScreen = () => {
                                 <Text style={styles.showPassText}>{showPassText}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.formBtn} onPress={onLogIn}>
-                                <Text style={styles.formBtnText}>Увійти</Text>
+                                <Text style={styles.formBtnText}>Log In</Text>
                             </TouchableOpacity>
                         </KeyboardAvoidingView>
                     </View>
                     <TouchableOpacity style={styles.nav} onPress={() => navigation.navigate("Registration")}>
-                        <Text style={styles.navText}>Немає акаунту? Зареєструватися</Text>
+                        <Text style={styles.navText}>Don't have an account? Sign up</Text>
                     </TouchableOpacity>
 
 
