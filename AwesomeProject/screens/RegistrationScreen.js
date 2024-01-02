@@ -95,6 +95,21 @@ export const RegistrationScreen = () => {
       return Alert.alert("Error", "Please upload a photo");
     }
 
+    if (!displayName) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your name");
+    }
+
+    if (!password) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your password");
+    }
+
+    if (!email) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your emal");
+    }
+
     if (!isEmailValid) {
       setLoading(false);
       return Alert.alert("Error", "Please enter a valid email address");
