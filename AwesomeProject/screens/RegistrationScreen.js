@@ -86,6 +86,7 @@ export const RegistrationScreen = () => {
 
   const onRegister = async () => {
     if (!displayName && !email && !password) {
+      setLoading(false);
       return Alert.alert("Error", "Fill out the form completely");
     };
 
@@ -95,10 +96,12 @@ export const RegistrationScreen = () => {
     }
 
     if (!isEmailValid) {
+      setLoading(false);
       return Alert.alert("Error", "Please enter a valid email address");
     };
 
     if (password.length < 6) {
+      setLoading(false);
       return Alert.alert("Error", "Password must contain at least 6 characters");
     };
 
