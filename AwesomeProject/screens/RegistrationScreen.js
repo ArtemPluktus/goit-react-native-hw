@@ -34,7 +34,7 @@ export const RegistrationScreen = () => {
   const [isEmailValid, setEmailValid] = useState(true);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(true);
-  const [showPassText, setShowPassText] = useState("Показати");
+  const [showPassText, setShowPassText] = useState("Show");
   const [loginFocused, setLoginFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -56,7 +56,7 @@ export const RegistrationScreen = () => {
     setPermission(status.status === "granted");
 
     if (status.status !== "granted") {
-      Alert.alert("Помилка", "Дозвіл на доступ до медіатеки не надано.");
+      Alert.alert("Error", "Permission to access the media library has not been granted.");
       return;
     };
 
@@ -86,15 +86,38 @@ export const RegistrationScreen = () => {
 
   const onRegister = async () => {
     if (!displayName && !email && !password) {
-      return Alert.alert("Помилка", "Заповніть форму цілком");
+      setLoading(false);
+      return Alert.alert("Error", "Fill out the form completely");
     };
 
+    if (!photoURL) {
+      setLoading(false);
+      return Alert.alert("Error", "Please upload a photo");
+    }
+
+    if (!displayName) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your name");
+    }
+
+    if (!password) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your password");
+    }
+
+    if (!email) {
+      setLoading(false);
+      return Alert.alert("Error", "Please enter your emal");
+    }
+
     if (!isEmailValid) {
-      return Alert.alert("Помилка", "Введіть коректну адресу електронної пошти");
+      setLoading(false);
+      return Alert.alert("Error", "Please enter a valid email address");
     };
 
     if (password.length < 6) {
-      return Alert.alert("Помилка", "Пароль меє містити від 6ти символів");
+      setLoading(false);
+      return Alert.alert("Error", "Password must contain at least 6 characters");
     };
 
     console.log(`Photo: ${photoURL}; Login: "${displayName}"; Email: "${email}"; Password "${password}"`);
@@ -149,14 +172,14 @@ export const RegistrationScreen = () => {
     setPhotoURL("");
     setPassword("");
     setShowPassword(true);
-    setShowPassText("Показати");
+    setShowPassText("Show");
     setPasswordFocused(false);
-    setEmailFocused(false); s
+    setEmailFocused(false);
   };
 
   const showPass = () => {
     setShowPassword(!showPassword);
-    setShowPassText(!showPassword ? "Показати" : "Скрити");
+    setShowPassText(!showPassword ? "Show" : "Hide");
   };
 
   return (
@@ -195,7 +218,7 @@ export const RegistrationScreen = () => {
               </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.textRegister}>Реєстрація</Text>
+          <Text style={styles.textRegister}>Sing Up</Text>
 
           <View>
             <KeyboardAvoidingView
@@ -204,7 +227,7 @@ export const RegistrationScreen = () => {
             >
               <TextInput
                 type="text"
-                placeholder="Логін"
+                placeholder="Name"
                 required
                 style={[
                   styles.formItem,
@@ -217,7 +240,7 @@ export const RegistrationScreen = () => {
               />
               <TextInput
                 type="email"
-                placeholder="Адреса електронної пошти"
+                placeholder="E-Mail"
                 required
                 style={[
                   styles.formItem,
@@ -230,7 +253,7 @@ export const RegistrationScreen = () => {
               />
               <TextInput
                 type="password"
-                placeholder="Пароль"
+                placeholder="Password"
                 required
                 style={[
                   styles.formItem,
@@ -246,7 +269,7 @@ export const RegistrationScreen = () => {
                 <Text style={styles.showPassText}>{showPassText}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.formBtn} onPress={onRegister}>
-                <Text style={styles.formBtnText}>Зареєстуватися</Text>
+                <Text style={styles.formBtnText}>Sing Up</Text>
               </TouchableOpacity>
             </KeyboardAvoidingView>
           </View>
@@ -254,7 +277,7 @@ export const RegistrationScreen = () => {
             style={styles.nav}
             onPress={() => navigation.navigate("Login")}
           >
-            <Text style={styles.navText}>Вже є акаунт? Увійти</Text>
+            <Text style={styles.navText}>Already have an account? Log in</Text>
           </TouchableOpacity>
         </View>
       </View>}
@@ -357,6 +380,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Roboto-Regular",
     color: "#fff",
+    textAlign: "center",
   },
   showPass: {
     position: "absolute",

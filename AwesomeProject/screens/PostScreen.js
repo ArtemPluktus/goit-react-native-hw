@@ -143,11 +143,11 @@ export const PostScreen = () => {
                 style={styles.loader}
             /> : <View>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Home")} style={styles.back}>
                         <Image source={require("../assets/img/back.png")} />
                     </TouchableOpacity>
 
-                    <Text style={styles.title}>Створити публікацію</Text>
+                    <Text style={styles.title}>Create a publication</Text>
                 </View>
                 <View>
                     <KeyboardAvoidingView style={styles.form} behavior={Platform.OS === "ios" ? "padding" : "height"} >
@@ -166,17 +166,17 @@ export const PostScreen = () => {
                                 </TouchableOpacity>
                             )}
                             <TouchableOpacity style={styles.delete} onPress={onDeletePhoto}>
-                                <Text style={styles.deleteText}>Видалити фото</Text>
+                                <Text style={styles.deleteText}>Delete photo</Text>
                             </TouchableOpacity>
                         </View>
                         <TextInput type="text"
-                            placeholder="Опис"
+                            placeholder="Description"
                             multiline
                             required style={styles.textInput}
                             value={description}
                             onChangeText={setDescription} />
                         <TouchableOpacity style={styles.formBtn} onPress={onPost}>
-                            <Text style={styles.formBtnText}>Опублікувати</Text>
+                            <Text style={styles.formBtnText}>Publish</Text>
                         </TouchableOpacity>
                     </KeyboardAvoidingView>
                 </View>
@@ -196,12 +196,16 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        gap: 80,
+        justifyContent: "center",
         padding: 10,
+        gap: 95,
         width: "100%",
         borderBottomWidth: 1,
         borderBottomColor: "#000",
         marginTop: 30,
+    },
+    back: {
+        marginLeft: '-30%'
     },
     title: {
         fontSize: 16,
